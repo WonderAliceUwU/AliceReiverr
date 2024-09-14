@@ -150,9 +150,12 @@
 	}
 
 	function playNextEpisode() {
-		if (nextJellyfinEpisode?.Id) playerState.streamJellyfinId(nextJellyfinEpisode?.Id || '');
+		if (nextJellyfinEpisode?.Id){
+          localStorage.setItem('id', nextJellyfinEpisode?.Id)
+          playerState.streamJellyfinId(nextJellyfinEpisode?.Id || '');
+		} 
 	}
-
+	
 	async function refreshSonarr() {
 		await sonarrSeriesStore.refreshIn();
 	}

@@ -68,7 +68,10 @@
 	}
 
 	function play() {
-		if ($jellyfinItemStore.item?.Id) playerState.streamJellyfinId($jellyfinItemStore.item?.Id);
+		if ($jellyfinItemStore.item?.Id){
+          localStorage.setItem('id', $jellyfinItemStore.item?.Id)
+          playerState.streamJellyfinId($jellyfinItemStore.item?.Id);
+		} 
 	}
 
 	async function refreshRadarr() {
