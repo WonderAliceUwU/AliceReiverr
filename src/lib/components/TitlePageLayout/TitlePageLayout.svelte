@@ -134,34 +134,6 @@
 					{#if titleInformation}
 						<div class="flex gap-4 justify-between">
 							<h1 class="font-semibold text-xl sm:text-2xl">{titleInformation.tagline}</h1>
-							<!-- <div class="flex items-center gap-4">
-						<a
-							target="_blank"
-							href={'https://www.themoviedb.org/tv/' + tmdbId}
-							class="opacity-60 hover:opacity-100"
-						>
-							<img src="/tmdb.svg" alt="tmdb" width="25px" />
-						</a>
-						{#if $itemStore.item?.sonarrSeries?.titleSlug}
-							<a
-								target="_blank"
-								href={PUBLIC_SONARR_BASE_URL +
-									'/series/' +
-									$itemStore.item?.sonarrSeries?.titleSlug}
-								class="opacity-60 hover:opacity-100"
-							>
-								<img src="/sonarr.svg" alt="sonarr" width="15px" />
-							</a>
-						{/if}
-						{#if series?.homepage}
-							<a
-								target="_blank"
-								href={series.homepage}
-								class="flex gap-1 items-center opacity-60 hover:opacity-100"
-							>
-								<Globe size={15} />
-							</a>
-						{/if} -->
 						</div>
 						<TruncatedText
 							class="pl-4 border-l-2 text-sm sm:text-base text-zinc-300"

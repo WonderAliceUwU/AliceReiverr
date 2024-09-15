@@ -144,22 +144,21 @@
 			PADDING
 		)}
 	>
-		{#if visibleShowcaseMovie}
-			{@const { movie, lazyRuntime, lazyTrailerId } = visibleShowcaseMovie}
-
-			{#key movie?.id}
-				<TitleShowcaseVisuals
-					tmdbId={movie?.id || 0}
-					type="movie"
-					title={movie?.title || ''}
-					genreIds={movie.genre_ids || []}
-					{lazyRuntime}
-					releaseDate={new Date(movie?.release_date || Date.now())}
-					tmdbRating={movie?.vote_average || 0}
-					posterUri={movie?.poster_path || ''}
-					{hideUI}
-				/>
-			{/key}
+	{#if visibleShowcaseMovie}
+    {@const { movie, lazyRuntime, lazyTrailerId } = visibleShowcaseMovie}
+    {#key movie?.id}
+        <TitleShowcaseVisuals
+            tmdbId={movie?.id || 0}
+            type="movie"
+            title={movie?.title || ''}
+            genreIds={movie.genre_ids || []}
+            {lazyRuntime}
+            releaseDate={new Date(movie?.release_date || Date.now())}
+            tmdbRating={movie?.vote_average || 0}
+            posterUri={movie?.poster_path || ''}
+            {hideUI}
+        />
+    {/key}
 			<div
 				class="md:relative self-stretch flex justify-center items-end row-start-2 row-span-1 col-start-1 col-span-2 md:row-start-1 md:row-span-2 md:col-start-2 md:col-span-2"
 			>
