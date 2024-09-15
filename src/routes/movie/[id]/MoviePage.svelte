@@ -98,43 +98,31 @@
 {#await data}
 	<TitlePageLayout {isModal} {handleCloseModal} />
 {:then movie }
-	<TitlePageLayout
-		titleInformation={{
-			tmdbId,
-			type: 'movie',
-			title: movie?.title || 'Movie',
-			backdropUriCandidates: movie?.images?.backdrops?.map((b) => b.file_path || '') || [],
-			posterPath: movie?.poster_path || '',
-			tagline: movie?.tagline || movie?.title || '',
-			overview: movie?.overview || ''
-		}}
-		{isModal}
-		{handleCloseModal}
-	>
-		<svelte:fragment slot="title-info">
-			{new Date(movie?.release_date || Date.now()).getFullYear()}
-			<DotFilled />
-			{@const progress = $jellyfinItemStore.item?.UserData?.PlayedPercentage}
-			{#if progress}
-				{progress.toFixed()} {$_('library.content.minLeft')}
-			{:else}
-				{movie?.runtime} min
-			{/if}
-			<DotFilled />
-			<a href={tmdbUrl} target="_blank">{movie?.vote_average?.toFixed(1)} TMDB</a>
-		</svelte:fragment>
-		<svelte:fragment slot="episodes-carousel">
-			{@const progress = $jellyfinItemStore.item?.UserData?.PlayedPercentage}
-			{#if progress}
-				<div
-					class={classNames('px-2 sm:px-4 lg:px-8', {
-						'2xl:px-0': !isModal
-					})}
-				>
-					<ProgressBar {progress} />
-				</div>
-			{/if}
-		</svelte:fragment>
+<TitlePageLayout
+    titleInformation={{
+        tmdbId,
+        type: 'movie',
+     	title: movie?.title || 'Movie',
+        logo: movie?.images?.logos?.[0]?.file_path || '',
+     	posterPath: movie?.poster_path || '',
+        backdropUriCandidates: movie?.images?.backdrops?.map((b) => b.file_path || '') || [],
+        tagline: movie?.tagline || movie?.title || '',
+        overview: movie?.overview || ''
+    }}
+    {isModal}
+    {handleCloseModal}
+>
+    <svelte:fragment slot="title-info">
+        {#if movie?.images?.logos?.[0]?.file_path}
+            <img 
+                src={`https://image.tmdb.org/t/p/w500${movie.images.logos[0].file_path}`} 
+                alt="{movie?.title} logo"
+                class="max-h-24 w-auto"
+            />
+        {:else}
+            {movie?.title || 'Movie'}
+        {/if}
+    </svelte:fragment>
 
 		<svelte:fragment slot="title-right">
 			<div

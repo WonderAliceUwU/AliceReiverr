@@ -44,7 +44,7 @@
 		e.stopPropagation();
 
 		if (!jellyfinId) return;
-
+		localStorage.setItem('id', jellyfinId);
 		playerState.streamJellyfinId(jellyfinId);
 	}
 </script>

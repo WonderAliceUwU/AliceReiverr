@@ -129,7 +129,7 @@
 							<div class="flex gap-2 mt-4">
 								<Button
 									type="primary"
-									on:click={() => showcase?.Id && playerState.streamJellyfinId(showcase?.Id)}
+									on:click={() => showcase?.Id && localStorage.setItem('id', showcase?.Id) && playerState.streamJellyfinId(showcase?.Id)}
 								>
 								{$_('library.content.play')}<ChevronRight size={20} />
 								</Button>

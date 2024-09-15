@@ -227,6 +227,7 @@
 		titleInformation={{
 			tmdbId,
 			type: 'series',
+            logo: tmdbSeries?.images?.logos?.[0]?.file_path || '',
 			backdropUriCandidates: tmdbSeries?.images?.backdrops?.map((b) => b.file_path || '') || [],
 			posterPath: tmdbSeries?.poster_path || '',
 			title: tmdbSeries?.name || '',
@@ -237,11 +238,15 @@
 		{handleCloseModal}
 	>
 		<svelte:fragment slot="title-info">
-			{new Date(tmdbSeries?.first_air_date || Date.now()).getFullYear()}
-			<DotFilled />
-			{tmdbSeries?.status}
-			<DotFilled />
-			<a href={tmdbUrl} target="_blank">{tmdbSeries?.vote_average?.toFixed(1)} TMDB</a>
+    		{#if tmdbSeries?.images?.logos?.[0]?.file_path}
+                <img 
+                    src={`https://image.tmdb.org/t/p/w500${tmdbSeries.images.logos[0].file_path}`} 
+                    alt="{tmdbSeries?.name} logo"
+                    class="max-h-24 w-auto"
+                />
+            {:else}
+                {tmdbSeries?.name || 'Series'}
+            {/if}
 		</svelte:fragment>
 
 		<svelte:fragment slot="title-right">

@@ -106,7 +106,7 @@
 			<PlayButton
 				on:click={(e) => {
 					e.preventDefault();
-					jellyfinId && playerState.streamJellyfinId(jellyfinId);
+					jellyfinId && localStorage.setItem('id', jellyfinId) && playerState.streamJellyfinId(jellyfinId);
 				}}
 				class="sm:opacity-0 group-hover:opacity-100 transition-opacity"
 			/>

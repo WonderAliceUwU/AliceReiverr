@@ -17,6 +17,7 @@
 				tmdbId: number;
 				type: TitleType;
 				title: string;
+				logo:string;
 				tagline: string;
 				overview: string;
 				backdropUriCandidates: string[];
@@ -30,9 +31,9 @@
 	let imageHeight: number;
 	$: imageHeight = isModal && topHeight ? topHeight : windowHeight - bottomHeight * 0.3;
 
-	function getBackdropUri(uris: string[]) {
-		return uris[Math.max(2, Math.floor(uris.length / 8))] || uris[uris.length - 1] || '';
-	}
+	function getBackdropUri(uris: string[]): string {
+    return uris[0] || '';
+}
 </script>
 
 <svelte:window bind:outerHeight={windowHeight} />
@@ -61,7 +62,7 @@
 	class="sm:hidden fixed inset-x-0 bg-center bg-cover bg-stone-950"
 >
 	{#if titleInformation}
-		<LazyImg src={TMDB_IMAGES_ORIGINAL + titleInformation.posterPath} class="h-full">
+		<LazyImg src={TMDB_IMAGES_ORIGINAL + getBackdropUri(titleInformation.backdropUriCandidates)} class="h-full">
 			<div class="absolute inset-0 bg-darken" />
 		</LazyImg>
 	{/if}
@@ -105,33 +106,12 @@
 			{/if}
 			<div class="absolute inset-0 bg-gradient-to-t from-stone-950 to-30%" />
 			<div class="z-[1] flex-1 flex justify-end gap-8 items-end max-w-screen-2xl mx-auto">
-				{#if titleInformation}
-					<div
-						class="aspect-[2/3] w-52 bg-center bg-cover rounded-md hidden sm:block"
-						style={"background-image: url('" +
-							TMDB_POSTER_SMALL +
-							titleInformation.posterPath +
-							"')"}
-					/>
-				{:else}
-					<div
-						class="aspect-[2/3] w-52 bg-center bg-cover rounded-md hidden sm:block placeholder"
-					/>
-				{/if}
 				<div class="flex-1 flex gap-4 justify-between flex-col lg:flex-row lg:items-end">
 					<div>
 						<div class="text-zinc-300 text-sm uppercase font-semibold flex items-center gap-1">
 							<slot name="title-info">
-								<div class="placeholder-text">Placeholder Long</div>
 							</slot>
 						</div>
-						{#if titleInformation}
-							<h1 class="text-4xl sm:text-5xl md:text-6xl font-semibold">
-								{titleInformation.title}
-							</h1>
-						{:else}
-							<h1 class="text-4xl sm:text-5xl md:text-6xl placeholder-text mt-2">Placeholder</h1>
-						{/if}
 					</div>
 					<div class="flex-shrink-0">
 						<slot name="title-right" />
