@@ -36,29 +36,35 @@
 
 	let downloadProps: ComponentProps<Poster>[] = [];
 	$: {
-		const sonarrProps: ComponentProps<Poster>[] =
-			$servarrDownloadsStore.sonarrDownloads?.map((item) => ({
-				tvdbId: item.series.tvdbId,
-				title: item.series.title || '',
-				subtitle:
-					`S${item.episode?.seasonNumber}E${item.episode?.episodeNumber} • ` +
-					capitalize(item.status || ''),
-				type: 'series',
-				progress: 100 * (((item.size || 0) - (item.sizeleft || 0)) / (item.size || 1)),
-				backdropUrl: item.series.images?.find((i) => i.coverType === 'poster')?.url || '',
-				orientation: 'portrait'
-			})) || [];
+	    const sonarrProps: ComponentProps<Poster>[] =
+            $servarrDownloadsStore.sonarrDownloads?.map((item) => {
+                const backdropUrl = item.series.images?.find((i) => i.coverType === 'poster')?.remoteUrl;
+                return {
+                    tvdbId: item.series.tvdbId,
+                    title: item.series.title || '',
+                    subtitle:
+                        `S${item.episode?.seasonNumber}E${item.episode?.episodeNumber} • ` +
+                        capitalize(item.status || ''),
+                    type: 'series',
+                    progress: 100 * (((item.size || 0) - (item.sizeleft || 0)) / (item.size || 1)),
+                    backdropUrl: backdropUrl || '',
+                    orientation: 'portrait'
+                };
+            }) || [];
 
-		const radarrProps: ComponentProps<Poster>[] =
-			$servarrDownloadsStore.radarrDownloads?.map((item) => ({
-				tmdbId: item.movie.tmdbId,
-				title: item.movie.title || '',
-				subtitle: capitalize(item.status || ''),
-				type: 'movie',
-				backdropUrl: item.movie.images?.find((i) => i.coverType === 'poster')?.url || '',
-				progress: 100 * (((item.size || 0) - (item.sizeleft || 0)) / (item.size || 1)),
-				orientation: 'portrait'
-			})) || [];
+					const radarrProps: ComponentProps<Poster>[] =
+            $servarrDownloadsStore.radarrDownloads?.map((item) => {
+                const backdropUrl = item.movie.images?.find((i) => i.coverType === 'fanart')?.remoteUrl;
+                return {
+                    tmdbId: item.movie.tmdbId,
+                    title: item.movie.title || '',
+                    subtitle: capitalize(item.status || ''),
+                    type: 'movie',
+                    backdropUrl: backdropUrl || '',
+                    progress: 100 * (((item.size || 0) - (item.sizeleft || 0)) / (item.size || 1)),
+                    orientation: 'portrait'
+                };
+            }) || [];
 
 		downloadProps = [...(sonarrProps || []), ...(radarrProps || [])];
 	}
