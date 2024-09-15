@@ -13,7 +13,7 @@ function createPlayerState() {
 		...store,
 		streamJellyfinId: (id: string) => {
 			store.set({ visible: true, jellyfinId: id });
-			modalStack.create(VideoPlayer, {}); // FIXME
+			modalStack.create(VideoPlayer, {}); 
 		},
 		close: () => {
 			store.set({ visible: false, jellyfinId: '' });

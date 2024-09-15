@@ -78,9 +78,6 @@
 		>
 			<div class="text-left">
 				<h1 class="font-bold tracking-wider text-lg">{title}</h1>
-				<div class="text-xs text-zinc-300 tracking-wider font-medium">
-					{genres.map((genre) => genre.charAt(0).toUpperCase() + genre.slice(1)).join(', ')}
-				</div>
 			</div>
 			<div class="flex justify-between items-end">
 				{#if completionTime}

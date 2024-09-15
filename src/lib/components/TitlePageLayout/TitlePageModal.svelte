@@ -15,7 +15,7 @@
 </script>
 
 <div
-	class="max-w-screen-2xl overflow-x-hidden overflow-y-scroll h-screen sm:mx-4 lg:mx-12 xl:mx-16 scrollbar-hide"
+	class="max-w-screen-2xl overflow-x-hidden overflow-y-scroll h-screen mt-10 rounded-2xl sm:mx-4 lg:mx-12 xl:mx-16 scrollbar-hide"
 >
 	<div
 		class="relative overflow-hidden"

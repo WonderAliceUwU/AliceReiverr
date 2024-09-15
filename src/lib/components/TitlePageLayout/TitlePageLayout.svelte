@@ -82,16 +82,6 @@
 			bind:clientHeight={topHeight}
 		>
 			{#if isModal}
-				{#if titleInformation}
-					<a
-						href={`/${titleInformation.type}/${titleInformation.tmdbId}`}
-						class="absolute top-8 right-4 sm:right-8 z-10"
-					>
-						<IconButton>
-							<ExternalLink size={20} />
-						</IconButton>
-					</a>
-				{/if}
 				<div class="absolute top-8 left-4 sm:left-8 z-10">
 					<button class="flex items-center sm:hidden font-medium" on:click={handleCloseModal}>
 						<ChevronLeft size={20} />
@@ -106,7 +96,7 @@
 			{/if}
 			<div class="absolute inset-0 bg-gradient-to-t from-stone-950 to-30%" />
 			<div class="z-[1] flex-1 flex justify-end gap-8 items-end max-w-screen-2xl mx-auto">
-				<div class="flex-1 flex gap-4 justify-between flex-col lg:flex-row lg:items-end">
+				<div class="flex-1 flex gap-4 justify-between flex-col lg:flex-row lg:items-end flex items-center">
 					<div>
 						<div class="text-zinc-300 text-sm uppercase font-semibold flex items-center gap-1">
 							<slot name="title-info">

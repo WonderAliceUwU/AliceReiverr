@@ -199,12 +199,14 @@
 					{movie?.status}
 				</h2>
 			</div>
+			{#if movie?.runtime}
 			<div class="col-span-2 lg:col-span-1">
-				<p class="text-zinc-400 text-sm">{$_('library.content.runtime')}</p>
-				<h2 class="font-medium">
-					{movie?.runtime} Minutes
-				</h2>
-			</div>
+                <p class="text-zinc-400 text-sm">{$_('library.content.runtime')}</p>
+                <h2 class="font-medium">
+                    {Math.floor(movie?.runtime / 60)}h {movie?.runtime % 60}m
+                </h2>
+            </div>
+			{/if}
 		</svelte:fragment>
 
 		<svelte:fragment slot="servarr-components">

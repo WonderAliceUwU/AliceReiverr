@@ -15,9 +15,10 @@
 	import PageDots from '../PageDots.svelte';
 	import IconButton from '../IconButton.svelte';
 	import { ChevronRight } from 'radix-icons-svelte';
+	import { openTitleModal } from '$lib/stores/modal.store';
 
+	export let openInModal = true;
 	let hideUI = false;
-
 	let continueWatchingEmpty = false;
 
 	let nextUpP = getJellyfinNextUp();
@@ -188,25 +189,37 @@
 		{/if}
 	</div>
 	<div
-		class={classNames('z-[1] transition-opacity', {
-			'opacity-0': hideUI
-		})}
-	>
-		{#if !continueWatchingEmpty}
-			<Carousel gradientFromColor="from-transparent" scrollClass={PADDING}>
-				<div slot="title" class="text-lg font-semibold text-zinc-300">Continue Watching</div>
-				{#await nextUpProps}
-					<CarouselPlaceholderItems />
-				{:then props}
-					{#each props as prop}
-						<EpisodeCard
-							on:click={() => (window.location.href = `/${prop.type}/${prop.tmdbId}`)}
-							{...prop}
-							size="sm"
-						/>
-					{/each}
-				{/await}
-			</Carousel>
-		{/if}
-	</div>
+    class={classNames('z-[1] transition-opacity', {
+        'opacity-0': hideUI
+    })}
+>
+    {#if !continueWatchingEmpty}
+        <Carousel gradientFromColor="from-transparent" scrollClass={PADDING}>
+            <div slot="title" class="text-lg font-semibold text-zinc-300">Continue Watching</div>
+            {#await nextUpProps}
+                <CarouselPlaceholderItems />
+            {:then props}
+                {#each props as prop}
+                    <EpisodeCard
+                        on:click={() => {
+                            if (openInModal) {
+                                if (prop.tmdbId) {
+                                    openTitleModal({ type: prop.type, id: prop.tmdbId, provider: 'tmdb' });
+                                } else if (prop.tvdbId) {
+                                    openTitleModal({ type: prop.type, id: prop.tvdbId, provider: 'tvdb' });
+                                }
+                            } else {
+                                window.location.href = prop.tmdbId || prop.tvdbId 
+                                    ? `/${prop.type}/${prop.tmdbId || prop.tvdbId}` 
+                                    : '#';
+                            }
+                        }}
+                        {...prop}
+                        size="sm"
+                    />
+                {/each}
+            {/await}
+        </Carousel>
+    {/if}
+</div>
 </div>
