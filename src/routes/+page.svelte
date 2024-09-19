@@ -231,6 +231,20 @@
 	}}
 	out:fade|global={{ duration: $settings.animationDuration }}
 >
+    <Carousel scrollClass={PADDING}
+			gradientFromColor="from-stone-950"
+			heading={$_('discover.trending')}
+			class="mx-2 sm:mx-8 2xl:mx-0"
+		>
+			{#await fetchTrendingProps()}
+				<CarouselPlaceholderItems size="lg" />
+			{:then props}
+				{#each props as prop (prop.tmdbId)}
+					<Poster {...prop} size="lg" />
+				{/each}
+			{/await}
+	</Carousel>
+
 	<Carousel scrollClass={PADDING}>
 		<div slot="title" class="text-lg font-semibold text-zinc-300">
 			{$_('discover.upcomingMovies')}

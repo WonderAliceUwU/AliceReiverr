@@ -15,8 +15,7 @@
 </script>
 
 <div
-	class="max-w-screen-2xl overflow-x-hidden overflow-y-scroll h-screen mt-10 rounded-2xl sm:mx-4 lg:mx-12 xl:mx-16 scrollbar-hide"
->
+class="max-w-screen-2xl overflow-x-hidden overflow-y-scroll h-screen rounded-2xl sm:mx-4 lg:mx-12 xl:mx-16 scrollbar-hide md:mt-10">
 	<div
 		class="relative overflow-hidden"
 		in:fly|global={{ y: 20, duration: 200, delay: 200 }}

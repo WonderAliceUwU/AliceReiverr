@@ -30,7 +30,6 @@
 	import type { ComponentProps } from 'svelte';
 	import { _ } from 'svelte-i18n';
 	import { searchMovieRadarr } from '$lib/apis/radarr/radarrApi';
-	import toast from 'svelte-french-toast';
 	
 	export let tmdbId: number;
 	export let isModal = false;
@@ -147,7 +146,6 @@
 
         // Refresh the stores
         radarrMovieStore.refreshIn();
-        radarrDownloadStore.refreshIn();
     }
 </script>
 

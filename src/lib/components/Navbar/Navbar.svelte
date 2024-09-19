@@ -54,7 +54,7 @@
 		class="hidden sm:flex gap-2 items-center hover:text-inherit selectable rounded-sm px-2 -mx-2"
 	>
 		<div class="rounded-full bg-amber-300 h-4 w-4" />
-		<h1 class="font-display uppercase font-semibold tracking-wider text-xl">Reiverr</h1>
+		<h1 class="font-display uppercase font-semibold tracking-wider text-xl">ALICE'S</h1>
 	</a>
 	<div
 		class="flex items-center justify-center gap-4 md:gap-8 font-normal text-sm tracking-wider text-zinc-200"
@@ -79,33 +79,33 @@
 		<IconButton on:click={openSearchModal}>
 			<MagnifyingGlass size={20} />
 		</IconButton>
-		<IconButton>
-			<Person size={20} />
-		</IconButton>
 	</div>
 </div>
 
-<div class={classNames(baseStyle, ' grid sm:hidden')}>
-	<a href="/" class="flex gap-2 items-center hover:text-inherit selectable rounded-sm px-2 -mx-2">
-		<div class="rounded-full bg-amber-300 h-4 w-4" />
-		<h1 class="font-display uppercase font-semibold tracking-wider text-xl">Reiverr</h1>
-	</a>
-	<div />
-	<div class="flex items-center gap-2">
-		<IconButton on:click={openSearchModal}>
-			<MagnifyingGlass size={20} />
-		</IconButton>
+<div class={classNames(
+  baseStyle,
+  'grid sm:hidden fixed bottom-0 left-0 right-0 bg-white shadow-md p-2 z-50'
+)}>
+  <a href="/" class="flex gap-2 items-center hover:text-inherit selectable rounded-sm px-2 -mx-2">
+    <div class="rounded-full bg-amber-300 h-4 w-4" />
+    <h1 class="font-display uppercase font-semibold tracking-wider text-xl">Alice</h1>
+  </a>
+  <div />
+  <div class="flex items-center gap-2">
+    <IconButton on:click={openSearchModal}>
+      <MagnifyingGlass size={20} />
+    </IconButton>
 
-		{#if isMobileMenuVisible}
-			<IconButton on:click={() => (isMobileMenuVisible = false)}>
-				<Cross1 size={20} />
-			</IconButton>
-		{:else}
-			<IconButton on:click={() => (isMobileMenuVisible = true)}>
-				<HamburgerMenu size={20} />
-			</IconButton>
-		{/if}
-	</div>
+    {#if isMobileMenuVisible}
+      <IconButton on:click={() => (isMobileMenuVisible = false)}>
+        <Cross1 size={20} />
+      </IconButton>
+    {:else}
+      <IconButton on:click={() => (isMobileMenuVisible = true)}>
+        <HamburgerMenu size={20} />
+      </IconButton>
+    {/if}
+  </div>
 </div>
 
 {#if isMobileMenuVisible}

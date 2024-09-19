@@ -39,7 +39,7 @@
 	import { addSeasonToSonarr } from '$lib/apis/sonarr/sonarrApi';
 	import {slide } from 'svelte/transition';
 	import Download from 'radix-icons-svelte/Icons/Download.svelte';
-	import Notification from '$lib/components/Notification/Notification.svelte';
+
 	export let titleId: TitleId;
 	export let isModal = false;
 	export let handleCloseModal: () => void = () => {};
@@ -190,16 +190,12 @@
         if (!sonarrSeries?.id) return;    
         addSeasonToSonarr(sonarrSeries.id, seasonNumber)
           .then(() => {
-            toast.success('Season(s) added successfully', {
-                duration: 3000,
-                position: 'top-right'
-            });
+            console.log(`Season ${seasonNumber} added successfully`);
+            refreshSonarr();
           })
           .catch((error) => {
-            toast.error('An unexpected error occurred', {
-                duration: 3000,
-                position: 'top-right'
-            });          })
+            console.error(`Error adding season ${seasonNumber}:`, error);
+          })
           .finally(() => {
             dropdownOpen = false;
           });
@@ -216,12 +212,13 @@
         const removeSuccess = await removeFromSonarr($sonarrSeriesStore.item.id);
     
         if (!removeSuccess) {
-            {new Notification("Hey", "Deleted", 40)}
+            console.error("Failed to remove series from Sonarr");
             success = false;
         }
     
         if (success) {
             await refreshSonarr();
+            console.log("Series and associated downloads deleted successfully");
         } else {
             console.error("There were issues deleting the series or its downloads");
         }
