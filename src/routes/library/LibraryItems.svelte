@@ -136,28 +136,25 @@
 				items.filter((i) => i.UserData?.Played).map((item) => getPropsFromJellyfinItem(item))
 			);
 		} else if (tab === 'unavailable') {
-			props = await Promise.all([
-				radarrMoviesStore.promise,
-				sonarrSeriesStore.promise,
-				jellyfinItemsPromise
-			])
-				.then(([radarr, sonarr, jellyfinItems]) => ({
-					items: [...radarr, ...sonarr],
-					jellyfinItems
-				}))
-				.then(({ items, jellyfinItems }) =>
-					items
-						.filter((i) => i.title?.toLowerCase().includes(searchQuery.toLowerCase()))
-						.filter(
-							(i) =>
-								!jellyfinItems.find((j) => j.ProviderIds?.Tmdb === String((<any>i).tmdbId || '-'))
-						)
-						.filter(
-							(i) =>
-								!jellyfinItems.find((j) => j.ProviderIds?.Tvdb === String((<any>i).tvdbId || '-'))
-						)
-						.map((i) => getPropsfromServarrItem(i))
-				);
+		const jellyfinItems = await jellyfinItemsPromise;
+
+        // Get items from Radarr and Sonarr
+        const radarrMovies = await radarrMoviesStore.promise;
+        const sonarrSeries = await sonarrSeriesStore.promise;
+        
+        // Combine Radarr and Sonarr items
+        const radarrAndSonarrItems = [...radarrMovies, ...sonarrSeries];
+        
+        // Filter out items that are in Radarr/Sonarr but not in Jellyfin
+        const missingItems = radarrAndSonarrItems.filter(radarrSonarrItem => 
+          !jellyfinItems.some(jellyfinItem => 
+            jellyfinItem.Name === radarrSonarrItem.title || 
+            jellyfinItem.Name === radarrSonarrItem.title
+          )
+        );
+        
+        // Map the missing items to the required props format
+        props = missingItems.map(item => getPropsfromServarrItem(item));
 		}
 
 		const toAdd = props.slice(PAGE_SIZE * page, PAGE_SIZE * (page + 1));

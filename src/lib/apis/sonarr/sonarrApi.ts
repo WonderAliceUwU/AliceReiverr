@@ -20,6 +20,7 @@ export interface SonarrSeriesOptions {
 	monitored: boolean;
 	tvdbId: number;
 	rootFolderPath: string;
+	seriesType?: 'standard' | 'anime';
 	addOptions: {
 		monitor:
 		| 'unknown'
@@ -80,27 +81,35 @@ export const getDiskSpace = (): Promise<DiskSpaceInfo[]> =>
 		.then((d) => d.data || []) || Promise.resolve([]);
 
 export const addSeriesToSonarr = async (tmdbId: number) => {
-	const tmdbSeries = await getTmdbSeries(tmdbId);
+    const tmdbSeries = await getTmdbSeries(tmdbId);
 
-	if (!tmdbSeries || !tmdbSeries.external_ids.tvdb_id || !tmdbSeries.name)
-		throw new Error('Movie not found');
+    if (!tmdbSeries || !tmdbSeries.external_ids.tvdb_id || !tmdbSeries.name)
+        throw new Error('Series not found');
 
-	let monitorType = await getSonarrMonitor(get(settings)?.sonarr.monitor);
-	let search = get(settings)?.sonarr.StartSearch;
-	const options: SonarrSeriesOptions = {
-		title: tmdbSeries.name,
-		tvdbId: tmdbSeries.external_ids.tvdb_id,
-		qualityProfileId: get(settings)?.sonarr.qualityProfileId || 0,
-		monitored: monitorType != 'none' ? true : false,
-		addOptions: {
-			monitor: monitorType ? (monitorType as any) : 'none',
-			searchForMissingEpisodes: search ? search : false,
-			searchForCutoffUnmetEpisodes: search ? search : false
-		},
-		rootFolderPath: get(settings)?.sonarr.rootFolderPath || '',
-		languageProfileId: get(settings)?.sonarr.languageProfileId || 0,
-		seasonFolder: true
-	};
+    //const monitorType = await getSonarrMonitor(get(settings)?.sonarr.monitor);
+    const search = get(settings)?.sonarr.StartSearch;
+      
+    // Check if the series is anime
+    const isLikelyAnime = (
+        tmdbSeries.genres?.some(genre => genre.name?.toLowerCase() === 'animation') &&
+        (tmdbSeries.origin_country?.includes('JP') || tmdbSeries.original_language === 'ja')
+    );
+    
+    const options: SonarrSeriesOptions = {
+        title: tmdbSeries.name,
+        tvdbId: tmdbSeries.external_ids.tvdb_id,
+        qualityProfileId: get(settings)?.sonarr.qualityProfileId || 0,
+        monitored: true,
+        addOptions: {
+            monitor: 'all',
+            searchForMissingEpisodes: search ? search : false,
+            searchForCutoffUnmetEpisodes: search ? search : false
+        },
+        rootFolderPath: get(settings)?.sonarr.rootFolderPath || '',
+        languageProfileId: get(settings)?.sonarr.languageProfileId || 0,
+        seasonFolder: true,
+        seriesType: isLikelyAnime ? 'anime' : 'standard' 
+    };
 
 	return getSonarrApi()
 		?.post('/api/v3/series', {
@@ -108,6 +117,19 @@ export const addSeriesToSonarr = async (tmdbId: number) => {
 			body: options
 		})
 		.then((r) => r.data);
+};
+
+export const addSeasonToSonarr = async (sonarrID: number, seasonNumber: number) => {
+  const searchData = {
+      name: 'SeasonSearch',
+      seriesId: sonarrID,
+      seasonNumber: seasonNumber,
+      qualityProfileId: 3
+  };
+
+  return getSonarrApi()?.post('/api/v3/command', {
+      body: searchData
+  }).then(r => r.data);
 };
 
 export const cancelDownloadSonarrEpisode = async (downloadId: number) => {
@@ -177,7 +199,10 @@ export const removeFromSonarr = (id: number): Promise<boolean> =>
 			params: {
 				path: {
 					id
-				}
+				},
+				query: {
+          deleteFiles: true,
+        }
 			}
 		})
 		.then((res) => res.response.ok) || Promise.resolve(false);

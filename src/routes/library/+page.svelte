@@ -18,10 +18,7 @@
 	import LibraryItems from './LibraryItems.svelte';
 	import { capitalize } from '$lib/utils';
 	import LazyImg from '$lib/components/LazyImg.svelte';
-
-	let openNextUpTab: 'downloading' | 'nextUp' = 'downloading';
 	let noItems = false;
-
 	let showcasePromise: Promise<JellyfinItem | undefined> = jellyfinItemsStore.promise.then(
 		(items) =>
 			items
@@ -54,7 +51,7 @@
 
 					const radarrProps: ComponentProps<Poster>[] =
             $servarrDownloadsStore.radarrDownloads?.map((item) => {
-                const backdropUrl = item.movie.images?.find((i) => i.coverType === 'fanart')?.remoteUrl;
+                const backdropUrl = item.movie.images?.find((i) => i.coverType === 'poster')?.remoteUrl;
                 return {
                     tmdbId: item.movie.tmdbId,
                     title: item.movie.title || '',
@@ -163,16 +160,17 @@
 		out:fade|global={{ duration: $settings.animationDuration }}
 	>
 		<div class="max-w-screen-2xl m-auto flex flex-col gap-12">
-			{#if downloadProps?.length}
-				<div>
-					<Carousel heading="Downloading">
-						{#each downloadProps as props}
-							<Poster {...props} />
-						{/each}
-					</Carousel>
-				</div>
-			{/if}
-
+		{#if downloadProps?.length}
+            <div>
+                <Carousel heading="Downloading">
+                    {#each downloadProps as props}
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <Poster {...props} />
+                    </div>
+                    {/each}
+                </Carousel>
+            </div>
+        {/if}
 			<LibraryItems />
 		</div>
 	</div>

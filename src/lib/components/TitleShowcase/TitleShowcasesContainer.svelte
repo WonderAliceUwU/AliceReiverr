@@ -46,7 +46,7 @@
 						...(item.Type === 'Movie'
 							? {
 									type: 'movie',
-									subtitle: item.Genres?.join(', ') || ''
+									subtitle: '',
 							  }
 							: {
 									type: 'series',

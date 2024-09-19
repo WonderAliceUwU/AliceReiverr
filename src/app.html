@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" style="background-color: black">
 	<head>
-		<title>Reiverr</title>
+		<title>Alice's Server</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 		<meta name="mobile-web-app-capable" content="yes" />
@@ -22,10 +22,132 @@
 		/>
 		%sveltekit.head%
 	</head>
-	<body
-		data-sveltekit-preload-data="hover"
-		class="bg-stone-950 min-h-screen text-white touch-manipulation relative -z-10"
-	>
-		<div style="display: contents">%sveltekit.body%</div>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		.login-form {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			backdrop-filter: blur(15px);
+			border-radius: 15px;
+			padding: 30px;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+		}
+		.login-form h1 {
+			font-weight: 800;
+			font-size: 2rem;
+			color: white;
+			margin-bottom: 20px;
+		}
+		.login-form input {
+			margin: 10px;
+			padding: 10px;
+			width: 250px;
+			color: black;
+			border-radius: 8px;
+			border: 1px solid #ccc;
+			font-size: 16px;
+			outline: none;
+			box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+			transition: all 0.3s ease;
+		}
+		.login-form input:focus {
+			border-color: #007aff;
+			box-shadow: 0px 0px 10px rgba(0, 122, 255, 0.5);
+		}
+		.login-form button {
+			margin: 10px;
+			padding: 10px 20px;
+			background-color: #007aff;
+			color: white;
+			border: none;
+			border-radius: 8px;
+			font-size: 16px;
+			cursor: pointer;
+			box-shadow: 0px 5px 15px rgba(0, 122, 255, 0.4);
+			transition: background-color 0.3s ease;
+		}
+		.login-form button:hover {
+			background-color: #005bb5;
+		}
+		.error-message {
+			color: red;
+			margin-top: 10px;
+		}
+		#sveltekit-body {
+			display: none;
+		}
+	</style>
+	<body data-sveltekit-preload-data="hover" class="bg-stone-950 min-h-screen text-white touch-manipulation relative -z-10">
+		<div id="login-form" class="login-form">
+			<h1>Alice's Server</h1>
+			<input type="text" id="username" placeholder="Username" />
+			<input type="password" id="password" placeholder="Password" />
+			<button onclick="login()">Login</button>
+			<p id="error-message" class="error-message"></p>
+		</div>
+		<div id="sveltekit-body">%sveltekit.body%</div>
+
+		<script>
+			var _0x1a2b = ['V29uZGVyQWxpY2U=', 'V29uZGVyNGxpY2U='];
+
+			function generateToken() {
+				return Math.random().toString(36).substr(2) + Date.now().toString(36);
+			}
+
+			function setToken(token) {
+				const expirationDate = new Date();
+				expirationDate.setDate(expirationDate.getDate() + 7);
+				localStorage.setItem('authToken', token);
+				localStorage.setItem('tokenExpiration', expirationDate.toISOString());
+			}
+
+			function getToken() {
+				const token = localStorage.getItem('authToken');
+				const expiration = new Date(localStorage.getItem('tokenExpiration'));
+
+				if (token && expiration > new Date()) {
+					return token;
+				}
+				return null;
+			}
+
+			function clearToken() {
+				localStorage.removeItem('authToken');
+				localStorage.removeItem('tokenExpiration');
+			}
+
+			function showSvelteKitBody() {
+				document.getElementById('login-form').style.display = 'none';
+				document.getElementById('sveltekit-body').style.display = 'block';
+			}
+
+			function login() {
+				const username = document.getElementById('username').value;
+				const password = document.getElementById('password').value;
+				const errorMessage = document.getElementById('error-message');
+
+				if (username === atob(_0x1a2b[0]) && password === atob(_0x1a2b[1])) {
+					const token = generateToken();
+					setToken(token);
+					showSvelteKitBody();
+				} else {
+					errorMessage.textContent = 'Invalid username or password';
+				}
+			}
+
+			window.onload = function () {
+				const token = getToken();
+				if (token) {
+					showSvelteKitBody();
+				}
+			};
+		</script>
 	</body>
 </html>

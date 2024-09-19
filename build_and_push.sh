@@ -28,7 +28,7 @@ fi
 
 # Tag the image
 echo "Tagging the Docker image..."
-if docker tag ghcr.io/wonderalice/modified-reiverr:latest wonderalice/modified-reiverr:v1; then
+if docker tag ghcr.io/wonderalice/modified-reiverr:latest wonderalice/modified-reiverr:v1.1; then
     success "Docker image tagged successfully."
 else
     error "Failed to tag Docker image."
@@ -36,7 +36,7 @@ fi
 
 # Push the image to Docker Hub
 echo "Pushing the Docker image to Docker Hub..."
-if docker push wonderalice/modified-reiverr:v1; then
+if docker push wonderalice/modified-reiverr:v1.1; then
     success "Docker image pushed to Docker Hub successfully."
 else
     error "Failed to push Docker image to Docker Hub."

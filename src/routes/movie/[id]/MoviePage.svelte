@@ -15,6 +15,7 @@
 	import RequestModal from '$lib/components/RequestModal/RequestModal.svelte';
 	import OpenInButton from '$lib/components/TitlePageLayout/OpenInButton.svelte';
 	import TitlePageLayout from '$lib/components/TitlePageLayout/TitlePageLayout.svelte';
+	import { removeFromRadarr, cancelDownloadRadarrMovie } from '$lib/apis/radarr/radarrApi';
 	import { playerState } from '$lib/components/VideoPlayer/VideoPlayer';
 	import {
 		createJellyfinItemStore,
@@ -25,10 +26,12 @@
 	import { settings } from '$lib/stores/settings.store';
 	import { formatMinutesToTime, formatSize } from '$lib/utils';
 	import classNames from 'classnames';
-	import { Archive, ChevronRight, DotFilled, Plus } from 'radix-icons-svelte';
+	import { Archive, ChevronRight, Trash, Plus, Download } from 'radix-icons-svelte';
 	import type { ComponentProps } from 'svelte';
 	import { _ } from 'svelte-i18n';
-
+	import { searchMovieRadarr } from '$lib/apis/radarr/radarrApi';
+	import toast from 'svelte-french-toast';
+	
 	export let tmdbId: number;
 	export let isModal = false;
 	export let handleCloseModal: () => void = () => {};
@@ -93,6 +96,59 @@
 			radarrId: $radarrMovieStore.item?.id
 		});
 	}
+	
+	async function addMovie(){
+	    if (!$radarrMovieStore.item?.id) return;
+        const success = await searchMovieRadarr($radarrMovieStore.item?.id, 3);
+        
+        if (success) {
+            await refreshRadarr();
+            // Optionally, show a success message to the user
+            console.log("Movie added succesfully");
+        } else {
+            // Optionally, show an error message to the user
+            console.error("Failed to add movie");
+        }
+	}
+	
+	async function deleteMovie() {
+        if (!$radarrMovieStore.item?.id) return;
+        
+        const confirmed = confirm("Are you sure you want to delete this movie and all associated downloads from Radarr?");
+        if (!confirmed) return;
+
+        let success = true;
+
+        if ($radarrDownloadStore.downloads && $radarrDownloadStore.downloads.length > 0) {
+            for (const download of $radarrDownloadStore.downloads) {
+                if (download.id) {
+                    const cancelSuccess = await cancelDownloadRadarrMovie(download.id);
+                    if (!cancelSuccess) {
+                        console.error(`Failed to cancel download with ID ${download.id}`);
+                        success = false;
+                    }
+                }
+            }
+        }
+
+        const removeSuccess = await removeFromRadarr($radarrMovieStore.item.id);
+
+        if (!removeSuccess) {
+            console.error("Failed to remove movie from Radarr");
+            success = false;
+        }
+
+        if (success) {
+            await refreshRadarr();
+            console.log("Movie and associated downloads deleted successfully");
+        } else {
+            console.error("There were issues deleting the movie or its downloads");
+        }
+
+        // Refresh the stores
+        radarrMovieStore.refreshIn();
+        radarrDownloadStore.refreshIn();
+    }
 </script>
 
 {#await data}
@@ -143,9 +199,30 @@
 							<span>{$_('library.content.addRadarr')}</span><Plus size={20} />
 						</Button>
 					{:else if radarrMovie}
-						<Button type="primary" on:click={openRequestModal}>
-							<span class="mr-2">{$_('library.content.requestMovie')}</span><Plus size={20} />
+    					<Button slim on:click={deleteMovie}>
+    						<Trash size={25} />
+    					</Button>
+						<Button slim on:click={openRequestModal}>
+							<span class="mr-2">Manual search... </span>
 						</Button>
+						{#if !$radarrDownloadStore.downloads?.length}
+    						<Button type="primary" on:click={addMovie}>
+     							<span class="mr-2">Add to server</span><Plus size={20} />
+    						</Button>
+						{/if}
+						{#if $radarrDownloadStore.downloads?.length}
+							{@const download = $radarrDownloadStore.downloads[0]}
+							<Button type="primary">
+    							<h2 class="font-medium">
+    								{download?.estimatedCompletionTime
+    									? formatMinutesToTime(
+    											(new Date(download.estimatedCompletionTime).getTime() - Date.now()) / 1000 / 60
+    									  )
+    									: 'Stalled'}
+    							</h2>
+                                <Download  size={20}/>
+    						</Button>
+						{/if}
 					{/if}
 				{/if}
 			</div>
@@ -228,27 +305,14 @@
 						</h2>
 					</div>
 				{/if}
-				{#if $radarrDownloadStore.downloads?.length}
-					{@const download = $radarrDownloadStore.downloads[0]}
-					<div class="col-span-2 lg:col-span-1">
-						<p class="text-zinc-400 text-sm">{$_('library.content.downloadedIn')}</p>
-						<h2 class="font-medium">
-							{download?.estimatedCompletionTime
-								? formatMinutesToTime(
-										(new Date(download.estimatedCompletionTime).getTime() - Date.now()) / 1000 / 60
-								  )
-								: 'Stalled'}
-						</h2>
-					</div>
-				{/if}
 
 				<div class="flex gap-4 flex-wrap col-span-4 sm:col-span-6 mt-4">
 					<Button on:click={openRequestModal}>
-						<span class="mr-2">{$_('library.content.requestMovie')}</span><Plus size={20} />
+						<span class="mr-2">Manual search... </span>
 					</Button>
-					<Button>
-						<span class="mr-2">{$_('library.content.manage')}</span><Archive size={20} />
-					</Button>
+					<Button slim on:click={deleteMovie}>
+    						<Trash size={25} />
+    				</Button>
 				</div>
 			{:else if $radarrMovieStore.loading}
 				<div class="flex gap-4 flex-wrap col-span-4 sm:col-span-6 mt-4">

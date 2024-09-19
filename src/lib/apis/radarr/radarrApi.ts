@@ -96,6 +96,18 @@ export const addMovieToRadarr = async (tmdbId: number) => {
 	);
 };
 
+export const searchMovieRadarr = async (radarrID: number, qualityProfile: number) => {
+  const searchData = {
+    name: 'MoviesSearch',
+    movieIds: [radarrID],
+    qualityProfileId: qualityProfile
+  };
+
+  return getRadarrApi()?.post('/api/v3/command', {
+    body: searchData
+  }).then(r => r.data);
+};
+
 export const cancelDownloadRadarrMovie = async (downloadId: number) => {
 	const deleteResponse = await getRadarrApi()
 		?.del('/api/v3/queue/{id}', {
@@ -176,15 +188,18 @@ export const getDiskSpace = (): Promise<DiskSpaceInfo[]> =>
 		.then((d) => d.data || []) || Promise.resolve([]);
 
 export const removeFromRadarr = (id: number) =>
-	getRadarrApi()
-		?.del('/api/v3/movie/{id}', {
-			params: {
-				path: {
-					id
-				}
-			}
-		})
-		.then((res) => res.response.ok) || Promise.resolve(false);
+    getRadarrApi()
+        ?.del('/api/v3/movie/{id}', {
+            params: {
+                path: {
+                    id
+                },
+                query: {
+                    deleteFiles: true,
+                }
+            }
+        })
+        .then((res) => res.response.ok) || Promise.resolve(false);
 
 export const getRadarrHealth = async (
 	baseUrl: string | undefined = undefined,

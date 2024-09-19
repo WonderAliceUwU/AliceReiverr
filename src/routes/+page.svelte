@@ -233,18 +233,6 @@
 >
 	<Carousel scrollClass={PADDING}>
 		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.popularPeople')}
-		</div>
-		{#await fetchTrendingActorProps()}
-			<CarouselPlaceholderItems />
-		{:then props}
-			{#each props as prop (prop.tmdbId)}
-				<PersonCard {...prop} />
-			{/each}
-		{/await}
-	</Carousel>
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
 			{$_('discover.upcomingMovies')}
 		</div>
 		{#await fetchUpcomingMovies()}

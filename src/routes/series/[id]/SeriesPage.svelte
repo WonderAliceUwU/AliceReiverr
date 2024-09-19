@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getJellyfinEpisodes, type JellyfinItem } from '$lib/apis/jellyfin/jellyfinApi';
-	import { addSeriesToSonarr } from '$lib/apis/sonarr/sonarrApi';
+	import { addSeriesToSonarr, removeFromSonarr } from '$lib/apis/sonarr/sonarrApi';
 	import {
 		getTmdbIdFromTvdbId,
 		getTmdbSeries,
@@ -32,14 +32,18 @@
 	import type { TitleId } from '$lib/types';
 	import { capitalize, formatMinutesToTime, formatSize } from '$lib/utils';
 	import classNames from 'classnames';
-	import { Archive, ChevronLeft, ChevronRight, DotFilled, Plus } from 'radix-icons-svelte';
+	import { Archive, ChevronLeft, ChevronRight, DotFilled, Plus, Trash } from 'radix-icons-svelte';
 	import type { ComponentProps } from 'svelte';
 	import { get } from 'svelte/store';
 	import { _ } from 'svelte-i18n';
-
+	import { addSeasonToSonarr } from '$lib/apis/sonarr/sonarrApi';
+	import {slide } from 'svelte/transition';
+	import Download from 'radix-icons-svelte/Icons/Download.svelte';
+	import Notification from '$lib/components/Notification/Notification.svelte';
 	export let titleId: TitleId;
 	export let isModal = false;
 	export let handleCloseModal: () => void = () => {};
+	let dropdownOpen = false;
 
 	const data = loadInitialPageData();
 	const recommendationData = preloadRecommendationData();
@@ -49,7 +53,7 @@
 	const sonarrDownloadStore = createSonarrDownloadStore(sonarrSeriesStore);
 
 	let seasonSelectVisible = false;
-	let visibleSeasonNumber: number = 1;
+	let visibleSeasonNumber = 1;
 	let visibleEpisodeIndex: number | undefined = undefined;
 	let nextJellyfinEpisode: JellyfinItem | undefined = undefined;
 
@@ -169,7 +173,7 @@
 			.finally(() => (addToSonarrLoading = false));
 	}
 
-	async function openRequestModal() {
+	async function openManualModal() {
 		const sonarrSeries = get(sonarrSeriesStore).item;
 
 		if (!sonarrSeries?.id || !sonarrSeries?.statistics?.seasonCount) return;
@@ -180,6 +184,51 @@
 			heading: sonarrSeries?.title || 'Series'
 		});
 	}
+
+	async function addSeason(seasonNumber: number) {
+        const sonarrSeries = get(sonarrSeriesStore).item;
+        if (!sonarrSeries?.id) return;    
+        addSeasonToSonarr(sonarrSeries.id, seasonNumber)
+          .then(() => {
+            toast.success('Season(s) added successfully', {
+                duration: 3000,
+                position: 'top-right'
+            });
+          })
+          .catch((error) => {
+            toast.error('An unexpected error occurred', {
+                duration: 3000,
+                position: 'top-right'
+            });          })
+          .finally(() => {
+            dropdownOpen = false;
+          });
+    }
+    
+    async function deleteSeries() {
+        if (!$sonarrSeriesStore.item?.id) return;
+        
+        const confirmed = confirm("Are you sure you want to delete this series and all associated downloads from Sonarr?");
+        if (!confirmed) return;
+    
+        let success = true;
+    
+        const removeSuccess = await removeFromSonarr($sonarrSeriesStore.item.id);
+    
+        if (!removeSuccess) {
+            {new Notification("Hey", "Deleted", 40)}
+            success = false;
+        }
+    
+        if (success) {
+            await refreshSonarr();
+        } else {
+            console.error("There were issues deleting the series or its downloads");
+        }
+    
+        // Refresh the stores
+        sonarrSeriesStore.refreshIn();
+    }
 
 	// Focus next episode on load
 	let didFocusNextEpisode = false;
@@ -276,9 +325,47 @@
 							<span>{$_('library.content.addSonarr')}</span><Plus size={20} />
 						</Button>
 					{:else if $sonarrSeriesStore.item}
-						<Button type="primary" on:click={openRequestModal}>
-							<span class="mr-2">{$_('library.content.requestSeries')}</span><Plus size={20} />
+					    <Button slim on:click={deleteSeries}>
+    						<Trash size={25} />
+    					</Button>
+						<Button slim on:click={openManualModal}>
+							<span class="mr-2">Manual search...</span>
 						</Button>
+						{#if !$sonarrDownloadStore.downloads?.length}
+    						<Button type="primary" on:click={() => dropdownOpen = !dropdownOpen}>
+                                <span class="mr-2">Add to server</span><Plus size={20} />
+                                {#if dropdownOpen}
+                                    <div class="absolute left-0 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" style="width: 100%; bottom: 105%;"
+                                        transition:slide="{{ duration: 300, axis: 'y' }}">
+                                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                            {#each Array.from({ length: tmdbSeries?.number_of_seasons || 0 }, (_, i) => i + 1) as seasonNumber}
+                                            <button
+                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl flex justify-between"
+                                                role="menuitem"
+                                                on:click={() => addSeason(seasonNumber)}
+                                            >
+                                                Add Season {seasonNumber}
+                                                <Download  size={20}/>
+                                            </button>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                    {/if}
+                            </Button>
+						{/if}
+						{#if $sonarrDownloadStore.downloads?.length}
+							{@const download = $sonarrDownloadStore.downloads[0]}
+							<Button type="primary">
+    							<h2 class="font-medium">
+    								{download?.estimatedCompletionTime
+    									? formatMinutesToTime(
+    											(new Date(download.estimatedCompletionTime).getTime() - Date.now()) / 1000 / 60
+    									  )
+    									: 'Stalled'}
+    							</h2>
+                                <Download  size={20}/>
+    						</Button>
+						{/if}
 					{/if}
 				{/if}
 			</div>
@@ -447,12 +534,34 @@
 				{/if}
 
 				<div class="flex gap-4 flex-wrap col-span-4 sm:col-span-6 mt-4">
-					<Button on:click={openRequestModal}>
-						<span class="mr-2">{$_('library.content.requestSeries')}</span><Plus size={20} />
+					{#if !!nextJellyfinEpisode}
+					<Button slim on:click={deleteSeries}>
+    						<Trash size={25} />
+    				</Button>
+					<Button on:click={openManualModal}>
+						<span class="mr-2">Manual search...
 					</Button>
-					<Button>
-						<span class="mr-2">{$_('library.content.manage')}</span><Archive size={20} />
-					</Button>
+					<Button type="primary" on:click={() => dropdownOpen = !dropdownOpen}>
+                            <span class="mr-2">Add to server</span><Plus size={20} />
+                            {#if dropdownOpen}
+                                <div class="absolute left-0 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none" style="width: 100%; max-height: 10.5rem; bottom: 105%; overflow-y: scroll;"
+                                    transition:slide="{{ duration: 300, axis: 'y' }}">
+                                    <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                                        {#each Array.from({ length: tmdbSeries?.number_of_seasons || 0 }, (_, i) => i + 1) as seasonNumber}
+                                            <button
+                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-xl flex justify-between"
+                                                role="menuitem"
+                                                on:click={() => addSeason(seasonNumber)}
+                                            >
+                                                Add Season {seasonNumber}
+                                                <Download  size={20}/>
+                                            </button>
+                                        {/each}
+                                    </div>
+                                </div>
+                                {/if}
+                        </Button>
+					{/if}
 				</div>
 			{:else if $sonarrSeriesStore.loading}
 				<div class="flex gap-4 flex-wrap col-span-4 sm:col-span-6 mt-4">
