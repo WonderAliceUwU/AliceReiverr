@@ -9,7 +9,7 @@
 
   onMount(() => {
     // Construct the URL for Jellyfin's built-in web player
-    playerUrl = "https://jellyfin.wonderaliceserver.uk//web/#/details?id=" + localStorage.getItem('id');
+    playerUrl = "https://jellyfin.wonderaliceserver.uk/web/#/details?id=" + localStorage.getItem('id');
     
     // If you have the user's API key and want to auto-authenticate:
     playerUrl += `&apiKey=${apiKey}`;
