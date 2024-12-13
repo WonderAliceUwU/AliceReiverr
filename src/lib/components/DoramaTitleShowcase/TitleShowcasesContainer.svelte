@@ -43,7 +43,7 @@ export const TmdbApiOpen = createClient<paths>({
 			'&language=en-US' +
 			'&page=1' +
 			'&watch_region=US' +
-			'&with_watch_providers=344%20%7C%20337%20%7C%208', {
+			'&with_watch_providers=344|337|8|9|464', {
 		        params: {
 		            query: {
 		                sort_by: 'popularity.desc',

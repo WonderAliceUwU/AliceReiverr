@@ -70,7 +70,7 @@
 				out:fly={{ y: 10, duration: ANIMATION_DURATION }}
 			>
 		        {#if logoUri}
-                    <img src={logoUri} alt={title} class="max-w-full h-52" />
+                    <img src={logoUri} alt={title} class="max-w-full max-h-52" />
                 {:else}
                     <span class={classNames(
                         {

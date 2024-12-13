@@ -122,10 +122,17 @@
 			</a>
 			<a
 				on:click={() => (isMobileMenuVisible = false)}
-				href="/discover"
-				class={$page && getLinkStyle('/discover')}
+				href="/k-drama"
+				class={$page && getLinkStyle('/dorama')}
 			>
-				{$_('navbar.discover')}
+				k-drama
+			</a>
+		<a
+				on:click={() => (isMobileMenuVisible = false)}
+				href="/anime"
+				class={$page && getLinkStyle('/anime')}
+			>
+				anime
 			</a>
 			<a
 				on:click={() => (isMobileMenuVisible = false)}

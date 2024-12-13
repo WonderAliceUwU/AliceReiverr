@@ -111,7 +111,7 @@
 
 	const fetchUpcomingSeries = () =>
 		TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + formatDateToYearMonthDay(new Date()) +
-		'&with_watch_providers=344|337|8', {
+		'&with_watch_providers=344|337|8|9|464', {
 			params: {
 				query: {
 					sort_by: 'popularity.desc',
@@ -131,7 +131,7 @@
 			'&sort_by=popularity.desc' +
 			'&watch_region=US' +
 			'&with_original_language=ko' +
-			'&with_watch_providers=344|337|8', {
+		'&with_watch_providers=344|337|8|9|464', {
 				params: {
 					query: {
 						sort_by: 'popularity.desc',
@@ -151,7 +151,7 @@
 		'&sort_by=popularity.desc' +
 		'&watch_region=US' +
 		'&with_original_language=ko' +
-		'&with_watch_providers=344|337|8', {
+		'&with_watch_providers=344|337|8|9|464', {
 			params: {
 				query: {
 					sort_by: 'popularity.desc',
@@ -174,11 +174,11 @@
 		'&language=en-US' +
 		'&page=1' +
 		'&watch_region=US' +
-		'&with_watch_providers=344%20%7C%20337%20%7C%208', {
+		'&with_watch_providers=344|337|8|9|464', {
 	        params: {
 	            query: {
 	                sort_by: 'popularity.desc',
-	                language: $settings.language,
+	                language: 'en',
 	                with_original_language: 'ko',
 	            }
 	        }
@@ -186,6 +186,126 @@
 	    .then((res) => res.data?.results || [])
 	    .then((i) => fetchCardProps(i, 'series'));
 	};
+
+	const fetchViki = () => {
+		const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 100);
+
+	    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+		'&include_adult=false' +
+		'&include_null_first_air_dates=false' +
+		'&language=en-US' +
+		'&page=1' +
+		'&watch_region=US' +
+		'&with_watch_providers=344', {
+	        params: {
+	            query: {
+	                sort_by: 'popularity.desc',
+	                language: 'en',
+	                with_original_language: 'ko',
+	            }
+	        }
+	    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'series'));
+	};
+
+	const fetchDisney = () => {
+		const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 150);
+
+	    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+		'&include_adult=false' +
+		'&include_null_first_air_dates=false' +
+		'&language=en-US' +
+		'&page=1' +
+		'&watch_region=US' +
+		'&with_watch_providers=337', {
+	        params: {
+	            query: {
+	                sort_by: 'popularity.desc',
+	                language: 'en',
+	                with_original_language: 'ko',
+	            }
+	        }
+	    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'series'));
+	};
+
+	const fetchNetflix = () => {
+		const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 120);
+
+	    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+		'&include_adult=false' +
+		'&include_null_first_air_dates=false' +
+		'&language=en-US' +
+		'&page=1' +
+		'&watch_region=US' +
+		'&with_watch_providers=8', {
+	        params: {
+	            query: {
+	                sort_by: 'popularity.desc',
+	                language: 'en',
+	                with_original_language: 'ko',
+	            }
+	        }
+	    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'series'));
+	};
+
+	const fetchAmazon = () => {
+		const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 150);
+
+	    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+		'&include_adult=false' +
+		'&include_null_first_air_dates=false' +
+		'&language=en-US' +
+		'&page=1' +
+		'&watch_region=US' +
+		'&with_watch_providers=9', {
+	        params: {
+	            query: {
+	                sort_by: 'popularity.desc',
+	                language: 'en',
+	                with_original_language: 'ko',
+	            }
+	        }
+	    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'series'));
+	};
+
+		const fetchTVN = () => {
+			const today = new Date();
+		    const fortyDaysAgo = new Date(today);
+		    fortyDaysAgo.setDate(today.getDate() - 100);
+
+		    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+			'&include_adult=false' +
+			'&include_null_first_air_dates=false' +
+			'&language=en-US' +
+			'&page=1' +
+			'&watch_region=US' +
+			'&with_networks=866', {
+		        params: {
+		            query: {
+		                sort_by: 'popularity.desc',
+		                language: 'en',
+		                with_original_language: 'ko',
+		            }
+		        }
+		    })
+		    .then((res) => res.data?.results || [])
+		    .then((i) => fetchCardProps(i, 'series'));
+		};
 
 	function parseIncludedLanguages(includedLanguages: string) {
 		return includedLanguages.replace(' ', '').split(',').join('|');
@@ -231,6 +351,71 @@
 				{/each}
 			{/await}
 	</Carousel>
+
+	<Carousel scrollClass={PADDING}>
+				<div slot="title" class="text-lg font-semibold text-zinc-300">
+					Newest from Viki
+				</div>
+				{#await fetchViki()}
+					<CarouselPlaceholderItems />
+				{:then props}
+					{#each props as prop (prop.tmdbId)}
+						<Poster {...prop} />
+					{/each}
+				{/await}
+			</Carousel>
+
+	<Carousel scrollClass={PADDING}>
+				<div slot="title" class="text-lg font-semibold text-zinc-300">
+					Newest from Netflix
+				</div>
+				{#await fetchNetflix()}
+					<CarouselPlaceholderItems />
+				{:then props}
+					{#each props as prop (prop.tmdbId)}
+						<Poster {...prop} />
+					{/each}
+				{/await}
+			</Carousel>
+
+<Carousel scrollClass={PADDING}>
+				<div slot="title" class="text-lg font-semibold text-zinc-300">
+					Newest from TVN
+				</div>
+				{#await fetchTVN()}
+					<CarouselPlaceholderItems />
+				{:then props}
+					{#each props as prop (prop.tmdbId)}
+						<Poster {...prop} />
+					{/each}
+				{/await}
+			</Carousel>
+
+	<Carousel scrollClass={PADDING}>
+					<div slot="title" class="text-lg font-semibold text-zinc-300">
+						Newest from Disney+
+					</div>
+					{#await fetchDisney()}
+						<CarouselPlaceholderItems />
+					{:then props}
+						{#each props as prop (prop.tmdbId)}
+							<Poster {...prop} />
+						{/each}
+					{/await}
+				</Carousel>
+
+	<Carousel scrollClass={PADDING}>
+						<div slot="title" class="text-lg font-semibold text-zinc-300">
+							Newest from Amazon Prime
+						</div>
+						{#await fetchAmazon()}
+							<CarouselPlaceholderItems />
+						{:then props}
+							{#each props as prop (prop.tmdbId)}
+								<Poster {...prop} />
+							{/each}
+						{/await}
+					</Carousel>
 
 	<Carousel scrollClass={PADDING}>
 			<div slot="title" class="text-lg font-semibold text-zinc-300">

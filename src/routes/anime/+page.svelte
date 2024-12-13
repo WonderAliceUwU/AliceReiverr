@@ -17,7 +17,7 @@
 	import NetworkCard from '$lib/components/NetworkCard.svelte';
 	import PersonCard from '$lib/components/PersonCard/PersonCard.svelte';
 	import Poster from '$lib/components/Poster/Poster.svelte';
-	import TitleShowcases from '$lib/components/TitleShowcase/TitleShowcasesContainer.svelte';
+	import TitleShowcases from '$lib/components/AnimeTitleShowcase/TitleShowcasesContainer.svelte';
 	import { genres, networks } from '$lib/discover';
 	import { jellyfinItemsStore } from '$lib/stores/data.store';
 	import { settings } from '$lib/stores/settings.store';
@@ -27,7 +27,7 @@
 	import { _ } from 'svelte-i18n';
 	import { fade } from 'svelte/transition';
 
-	let continueWatchingVisible = true;
+	let continueWatchingVisible = false;
 
 	const tmdbPopularMoviesPromise = getTmdbPopularMovies()
 		.then((movies) => Promise.all(movies.map((movie) => getTmdbMovie(movie.id || 0))))
@@ -36,47 +36,6 @@
 	let nextUpP = getJellyfinNextUp();
 	let continueWatchingP = getJellyfinContinueWatching();
 
-	let nextUpProps = Promise.all([nextUpP, continueWatchingP])
-		.then(([nextUp, continueWatching]) => [
-			...(continueWatching || []),
-			...(nextUp?.filter((i) => !continueWatching?.find((c) => c.SeriesId === i.SeriesId)) || [])
-		])
-		.then((items) =>
-			Promise.all(
-				items?.map(async (item) => {
-					const parentSeries = await jellyfinItemsStore.promise.then((items) =>
-						items.find((i) => i.Id === item.SeriesId)
-					);
-
-					return {
-						tmdbId: Number(item.ProviderIds?.Tmdb) || Number(parentSeries?.ProviderIds?.Tmdb) || 0,
-						jellyfinId: item.Id,
-						backdropUrl: getJellyfinBackdrop(item),
-						title: item.Name || '',
-						progress: item.UserData?.PlayedPercentage || undefined,
-						runtime: item.RunTimeTicks ? item.RunTimeTicks / 10_000_000 / 60 : 0,
-						...(item.Type === 'Movie'
-							? {
-									type: 'movie',
-									subtitle: item.Genres?.join(', ') || ''
-							  }
-							: {
-									type: 'series',
-									subtitle:
-										(item?.IndexNumber && 'Episode ' + item.IndexNumber) ||
-										item.Genres?.join(', ') ||
-										''
-							  })
-					} as const;
-				})
-			)
-		);
-
-	nextUpProps.then((props) => {
-		if (props.length === 0) {
-			continueWatchingVisible = false;
-		}
-	});
 
 	let showcaseIndex = 0;
 
@@ -127,42 +86,23 @@
 				time_window: 'day'
 			},
 			query: {
-				language: $settings.language
+				language: $settings.language,
+				watch_providers: 344,
 			}
 		}
 	}).then((res) => res.data?.results || []);
 
 	const fetchTrendingProps = () => trendingItemsPromise.then(fetchCardProps);
 
-	const fetchTrendingActorProps = () =>
-		TmdbApiOpen.get('/3/trending/person/{time_window}', {
-			params: {
-				path: {
-					time_window: 'week'
-				}
-			}
-		})
-			.then((res) => res.data?.results || [])
-			.then((actors) =>
-				actors
-					.filter((a) => a.profile_path)
-					.map((actor) => ({
-						tmdbId: actor.id || 0,
-						backdropUri: actor.profile_path || '',
-						name: actor.name || '',
-						subtitle: actor.known_for_department || ''
-					}))
-			);
-
 	const fetchUpcomingMovies = () =>
-		TmdbApiOpen.get('/3/discover/movie', {
+		TmdbApiOpen.get('/3/discover/movie?primary_release_date.gte=' + formatDateToYearMonthDay(new Date()) +
+		'&with_watch_providers=337|8|9|430|283' +
+		'&with_genres=16', {
 			params: {
 				query: {
-					'primary_release_date.gte': formatDateToYearMonthDay(new Date()),
 					sort_by: 'popularity.desc',
 					language: $settings.language,
-					region: $settings.discover.region,
-					with_original_language: parseIncludedLanguages($settings.discover.includedLanguages)
+					with_original_language: 'ja'
 				}
 			}
 		})
@@ -170,103 +110,109 @@
 			.then(fetchCardProps);
 
 	const fetchUpcomingSeries = () =>
-		TmdbApiOpen.get('/3/discover/tv', {
+		TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + formatDateToYearMonthDay(new Date()) +
+		'&with_watch_providers=337|8|9|430|283' +
+		'&with_genres=16', {
 			params: {
 				query: {
-					'first_air_date.gte': formatDateToYearMonthDay(new Date()),
 					sort_by: 'popularity.desc',
 					language: $settings.language,
-					with_original_language: parseIncludedLanguages($settings.discover.includedLanguages)
+					with_original_language: 'ja'
 				}
 			}
 		})
 			.then((res) => res.data?.results || [])
 			.then((i) => fetchCardProps(i, 'series'));
 
-	const fetchDigitalReleases = () =>
-		TmdbApiOpen.get('/3/discover/movie', {
-			params: {
-				query: {
-					with_release_type: 4,
-					sort_by: 'popularity.desc',
-					'release_date.lte': formatDateToYearMonthDay(new Date()),
-					language: $settings.language,
-					with_original_language: parseIncludedLanguages($settings.discover.includedLanguages)
-					// region: $settings.discover.region
-				}
-			}
-		})
-			.then((res) => res.data?.results || [])
-			.then(fetchCardProps);
+	const fetchPopularMovies = () =>
+			TmdbApiOpen.get('/3/discover/movie?include_adult=false' +
+			'&include_null_first_air_dates=false' +
+			'&language=en-US' +
+			'&page=1' +
+			'&sort_by=popularity.desc' +
+			'&watch_region=JP' +
+				'&with_watch_providers=337|8|9|430|283' +
+					'&with_genres=16', {
+				        params: {
+				            query: {
+				                sort_by: 'popularity.desc',
+				                language: 'en',
+				                with_original_language: 'ja',
+				            }
+				        }
+				    })
+				.then((res) => res.data?.results || [])
+				.then((i) => fetchCardProps(i, 'movie'));
 
-	const fetchNowStreaming = () =>
-		TmdbApiOpen.get('/3/discover/tv', {
-			params: {
-				query: {
-					'air_date.gte': formatDateToYearMonthDay(new Date()),
-					'first_air_date.lte': formatDateToYearMonthDay(new Date()),
-					sort_by: 'popularity.desc',
-					language: $settings.language,
-					with_original_language: parseIncludedLanguages($settings.discover.includedLanguages)
-				}
-			}
-		})
+	const fetchPopularSeries = () =>
+		TmdbApiOpen.get('/3/discover/tv?include_adult=false' +
+		'&include_null_first_air_dates=false' +
+		'&language=en-US' +
+		'&page=1' +
+		'&sort_by=popularity.desc' +
+		'&watch_region=JP' +
+				'&with_watch_providers=337|8|9|430|283' +
+				'&with_genres=16', {
+			        params: {
+			            query: {
+			                sort_by: 'popularity.desc',
+			                language: 'en',
+			                with_original_language: 'ja',
+			            }
+			        }
+			    })
 			.then((res) => res.data?.results || [])
 			.then((i) => fetchCardProps(i, 'series'));
 
-const fetchDoramas = () =>
-    TmdbApiOpen.get('/3/discover/tv', {
-        params: {
-            query: {
-                //with_genres: '18', // Example genre ID for Drama, replace if needed
-                sort_by: 'popularity.desc',
-                language: $settings.language,
-                with_original_language: parseIncludedLanguages($settings.discover.includedLanguages)
-            }
-        }
-    })
-        .then((res) => res.data?.results || [])
-        .then((i) => fetchCardProps(i, 'series'));
+	const fetchTrendingSeries = () => {
+	    const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 90);
 
-// Fetch Anime
-const fetchAnime = () =>
-    TmdbApiOpen.get('/3/discover/tv', {
-        params: {
-            query: {
-                with_genres: '16',
-                sort_by: 'popularity.desc',
-                language: $settings.language,
-            }
-        }
-    })
-        .then((res) => res.data?.results || [])
-        .then((i) => fetchCardProps(i, 'series'));
+	    return TmdbApiOpen.get('/3/discover/tv?first_air_date.gte=' + fortyDaysAgo +
+			'&include_adult=false' +
+			'&include_null_first_air_dates=false' +
+			'&language=en-US' +
+			'&page=1' +
+			'&watch_region=JP' +
+			'&with_watch_providers=337|8|9|430|283' +
+			'&with_genres=16', {
+		        params: {
+		            query: {
+		                sort_by: 'popularity.desc',
+		                language: 'en',
+		                with_original_language: 'ja',
+		            }
+		        }
+		    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'series'));
+	};
 
-const fetchVikiShows = () =>
-    TmdbApiOpen.get('/3/discover/tv', {
-        params: {
-            query: {
-                with_networks: 1390, // Viki network ID
-                sort_by: 'popularity.desc',
-                language: $settings.language
-            }
-        }
-    })
-    .then((res) => res.data?.results || [])
-    .then(fetchCardProps);
+	const fetchTrendingMovies = () => {
+	    const today = new Date();
+	    const fortyDaysAgo = new Date(today);
+	    fortyDaysAgo.setDate(today.getDate() - 360);
 
-const fetchAsianShows = () =>
-    TmdbApiOpen.get('/3/discover/tv', {
-        params: {
-            query: {
-                //with_original_language: parseIncludedLanguages(['ko', 'zh', 'ja']), // Languages common to Viki
-                sort_by: 'popularity.desc',
-                language: $settings.language
-            }
-        }
-    })
-    .then((res) => res.data?.results || [])
-    .then(fetchCardProps);
+	    return TmdbApiOpen.get('/3/discover/movie?primary_release_date.gte=' + fortyDaysAgo +
+			'&include_adult=false' +
+			'&include_null_first_air_dates=false' +
+			'&language=en-US' +
+			'&page=1' +
+			'&watch_region=JP' +
+			'&with_watch_providers=337|8|9|430|283' +
+			'&with_genres=16', {
+		        params: {
+		            query: {
+		                sort_by: 'popularity.desc',
+		                language: 'en',
+		                with_original_language: 'ja',
+		            }
+		        }
+		    })
+	    .then((res) => res.data?.results || [])
+	    .then((i) => fetchCardProps(i, 'movie'));
+	};
 
 	function parseIncludedLanguages(includedLanguages: string) {
 		return includedLanguages.replace(' ', '').split(',').join('|');
@@ -287,16 +233,69 @@ const fetchAsianShows = () =>
 >
     <Carousel scrollClass={PADDING}
 			gradientFromColor="from-stone-950"
-			heading={$_('discover.trending')}
+			heading={'New & Trending Series'}
 			class="mx-2 sm:mx-8 2xl:mx-0"
 		>
-			{#await fetchTrendingProps()}
+			{#await fetchTrendingSeries()}
 				<CarouselPlaceholderItems size="lg" />
 			{:then props}
 				{#each props as prop (prop.tmdbId)}
 					<Poster {...prop} size="lg" />
 				{/each}
 			{/await}
+	</Carousel>
+
+ <Carousel scrollClass={PADDING}
+			gradientFromColor="from-stone-950"
+			heading={'New & Trending Movies'}
+			class="mx-2 sm:mx-8 2xl:mx-0"
+		>
+			{#await fetchTrendingMovies()}
+				<CarouselPlaceholderItems size="lg" />
+			{:then props}
+				{#each props as prop (prop.tmdbId)}
+					<Poster {...prop} size="lg" />
+				{/each}
+			{/await}
+	</Carousel>
+
+<Carousel scrollClass={PADDING}>
+			<div slot="title" class="text-lg font-semibold text-zinc-300">
+				Popular Series
+			</div>
+			{#await fetchPopularSeries()}
+				<CarouselPlaceholderItems />
+			{:then props}
+				{#each props as prop (prop.tmdbId)}
+					<Poster {...prop} />
+				{/each}
+			{/await}
+		</Carousel>
+
+<Carousel scrollClass={PADDING}>
+			<div slot="title" class="text-lg font-semibold text-zinc-300">
+				Popular Movies
+			</div>
+			{#await fetchPopularMovies()}
+				<CarouselPlaceholderItems />
+			{:then props}
+				{#each props as prop (prop.tmdbId)}
+					<Poster {...prop} />
+				{/each}
+			{/await}
+		</Carousel>
+
+	<Carousel scrollClass={PADDING}>
+		<div slot="title" class="text-lg font-semibold text-zinc-300">
+			{$_('discover.upcomingSeries')}
+		</div>
+		{#await fetchUpcomingSeries()}
+			<CarouselPlaceholderItems />
+		{:then props}
+			{#each props as prop (prop.tmdbId)}
+				<Poster {...prop} />
+			{/each}
+		{/await}
 	</Carousel>
 
 	<Carousel scrollClass={PADDING}>
@@ -311,83 +310,20 @@ const fetchAsianShows = () =>
 			{/each}
 		{/await}
 	</Carousel>
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.upcomingSeries')}
-		</div>
-		{#await fetchUpcomingSeries()}
-			<CarouselPlaceholderItems />
-		{:then props}
-			{#each props as prop (prop.tmdbId)}
-				<Poster {...prop} />
-			{/each}
-		{/await}
-	</Carousel>
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.genres')}
-		</div>
-		{#each Object.values(genres) as genre (genre.tmdbGenreId)}
-			<GenreCard {genre} />
-		{/each}
-	</Carousel>
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.newDigitalReleases')}
-		</div>
-		{#await fetchDigitalReleases()}
-			<CarouselPlaceholderItems />
-		{:then props}
-			{#each props as prop (prop.tmdbId)}
-				<Poster {...prop} />
-			{/each}
-		{/await}
-	</Carousel>
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.streamingNow')}
-		</div>
-		{#await fetchNowStreaming()}
-			<CarouselPlaceholderItems />
-		{:then props}
-			{#each props as prop (prop.tmdbId)}
-				<Poster {...prop} />
-			{/each}
-		{/await}
-	</Carousel>
-
-<Carousel scrollClass={PADDING}>
-    <div slot="title" class="text-lg font-semibold text-zinc-300">
-        K-Dramas
-    </div>
-    {#await fetchAsianShows()}
-        <CarouselPlaceholderItems />
-    {:then props}
-        {#each props as prop (prop.tmdbId)}
-            <Poster {...prop} />
-        {/each}
-    {/await}
-</Carousel>
-
-<Carousel scrollClass={PADDING}>
-    <div slot="title" class="text-lg font-semibold text-zinc-300">
-        Anime
-    </div>
-    {#await fetchAnime()}
-        <CarouselPlaceholderItems />
-    {:then props}
-        {#each props as prop (prop.tmdbId)}
-            <Poster {...prop} />
-        {/each}
-    {/await}
-</Carousel>
-
-	<Carousel scrollClass={PADDING}>
-		<div slot="title" class="text-lg font-semibold text-zinc-300">
-			{$_('discover.TVNetworks')}
-		</div>
-		{#each Object.values(networks) as network (network.tmdbNetworkId)}
-			<NetworkCard {network} />
-		{/each}
-	</Carousel>
+	<!--<Carousel scrollClass={PADDING}>-->
+	<!--	<div slot="title" class="text-lg font-semibold text-zinc-300">-->
+	<!--		{$_('discover.genres')}-->
+	<!--	</div>-->
+	<!--	{#each Object.values(genres) as genre (genre.tmdbGenreId)}-->
+	<!--		<GenreCard {genre} />-->
+	<!--	{/each}-->
+	<!--</Carousel>-->
+	<!--<Carousel scrollClass={PADDING}>-->
+	<!--	<div slot="title" class="text-lg font-semibold text-zinc-300">-->
+	<!--		{$_('discover.TVNetworks')}-->
+	<!--	</div>-->
+	<!--	{#each Object.values(networks) as network (network.tmdbNetworkId)}-->
+	<!--		<NetworkCard {network} />-->
+	<!--	{/each}-->
+	<!--</Carousel>-->
 </div>
